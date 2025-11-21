@@ -1,4 +1,4 @@
-scikit-learn==1.7.2
+scikit-learn==1.6.1
 joblib
 fastapi
 mangum
