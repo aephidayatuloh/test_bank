@@ -7,21 +7,31 @@ from fastapi import FastAPI, HTTPException
 from mangum import Mangum
 import os
 
+# 💡 Pustaka untuk download dari Hugging Face
+from huggingface_hub import hf_hub_download 
+
+# --- KONFIGURASI HF HUB ---
+HF_REPO_ID = "aephidayatuloh/bank-model" # Ganti dengan repo Anda
+HF_MODEL_FILENAME = "random_forest_bank_marketing_pipeline.joblib"
+
 # --- 1. SETUP MODEL DAN PATH ---
-
-# Path ke file model (harus disesuaikan dengan struktur Vercel)
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'random_forest_bank_marketing_pipeline.joblib')
-
 try:
-    # Muat model di luar handler/function untuk meminimalkan cold start
-    MODEL_PIPELINE = joblib.load(MODEL_PATH)
-    # Tentukan nama fitur (diambil dari langkah preprocessor jika perlu)
-    FEATURE_NAMES = MODEL_PIPELINE.named_steps['preprocessor'].transformers_[0][2] + \
-                    MODEL_PIPELINE.named_steps['preprocessor'].transformers_[1][2].tolist()
-    print("✅ Model Pipeline berhasil dimuat.")
+    # 💡 LAKUKAN DOWNLOAD MODEL DARI HF HUB
+    downloaded_model_path = hf_hub_download(
+        repo_id=HF_REPO_ID, 
+        filename=HF_MODEL_FILENAME
+    )
+    
+    # Muat model dari file yang baru diunduh (di cache Vercel)
+    MODEL_PIPELINE = joblib.load(downloaded_model_path)
+    
+    # Ambil nama fitur (tetap diperlukan untuk DataFrame)
+    # [Tambahkan logika pengambilan nama fitur Anda di sini, jika diperlukan]
+    
+    print("✅ Model Pipeline berhasil diunduh dan dimuat dari Hugging Face Hub.")
+
 except Exception as e:
-    # Log error model load, tetapi biarkan aplikasi berjalan (error 500 nanti)
-    print(f"❌ Gagal memuat model: {e}")
+    print(f"❌ Gagal memuat model dari HF Hub atau joblib: {e}")
     MODEL_PIPELINE = None
 
 # --- 2. DEFINISI STRUKTUR DATA (Pydantic Schema) ---
@@ -48,9 +58,9 @@ class PredictionInput(BaseModel):
 # --- 3. DEFINISI APLIKASI FASTAPI ---
 
 app = FastAPI(
-    title="Bank Deposit Campaign Prediction API",
+    title="Bank Deposit Prediction API",
     version="1.0.0",
-    description="API untuk memprediksi probabilitas membuka deposit berjangka menggunakan model Scikit-learn Pipeline yang di-deploy di Vercel."
+    description="API untuk memprediksi probabilitas deposit berjangka menggunakan model Scikit-learn Pipeline yang di-deploy di Vercel."
 )
 
 @app.get("/", tags=["Health Check"])
