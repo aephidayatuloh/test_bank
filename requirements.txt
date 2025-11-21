@@ -1,6 +1,8 @@
-scikit-learn==1.6.1
-joblib
 fastapi
 mangum
-numpy==2.0.2 
-pandas==2.2.2
+joblib
+pydantic
+huggingface_hub 
+scikit-learn==1.4.1
+numpy==1.26.4
+pandas==2.2.1
