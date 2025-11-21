@@ -2,5 +2,5 @@ scikit-learn==1.6.1
 joblib
 fastapi
 mangum
-numpy==1.24.4  
-pandas==2.0.3
+numpy==2.0.2 
+pandas==2.2.2
